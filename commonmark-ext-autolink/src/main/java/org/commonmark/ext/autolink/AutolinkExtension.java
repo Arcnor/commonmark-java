@@ -4,6 +4,9 @@ import org.commonmark.Extension;
 import org.commonmark.ext.autolink.internal.AutolinkPostProcessor;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.nibor.autolink.internal.EmailScanner;
+import org.nibor.autolink.internal.Scanner;
+import org.nibor.autolink.internal.UrlScanner;
 
 /**
  * Extension for automatically turning plain URLs and email addresses into links.
@@ -18,16 +21,44 @@ import org.commonmark.renderer.html.HtmlRenderer;
  */
 public class AutolinkExtension implements Parser.ParserExtension {
 
-    private AutolinkExtension() {
+    private final AutolinkPostProcessor.Builder processorBuilder;
+
+    private AutolinkExtension(AutolinkPostProcessor.Builder processorBuilder) {
+        this.processorBuilder = processorBuilder;
     }
 
     public static Extension create() {
-        return new AutolinkExtension();
+        return builder()
+                .withScanner(UrlScanner.TRIGGER, new UrlScanner())
+                .withScanner(EmailScanner.TRIGGER, new EmailScanner(true))
+                .build();
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
     public void extend(Parser.Builder parserBuilder) {
-        parserBuilder.postProcessor(new AutolinkPostProcessor());
+        parserBuilder.postProcessor(processorBuilder.build());
     }
 
+    public static class Builder {
+
+        private AutolinkPostProcessor.Builder processorBuilder = AutolinkPostProcessor.builder();
+
+        private Builder() {
+        }
+
+
+        public Builder withScanner(char trigger, Scanner scanner) {
+            processorBuilder.withScanner(trigger, scanner);
+
+            return this;
+        }
+
+        public AutolinkExtension build() {
+            return new AutolinkExtension(processorBuilder);
+        }
+    }
 }

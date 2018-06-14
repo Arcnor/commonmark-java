@@ -5,14 +5,19 @@ import org.commonmark.parser.PostProcessor;
 import org.nibor.autolink.LinkExtractor;
 import org.nibor.autolink.LinkSpan;
 import org.nibor.autolink.LinkType;
-
-import java.util.EnumSet;
+import org.nibor.autolink.internal.Scanner;
 
 public class AutolinkPostProcessor implements PostProcessor {
 
-    private LinkExtractor linkExtractor = LinkExtractor.builder()
-            .linkTypes(EnumSet.of(LinkType.URL, LinkType.EMAIL))
-            .build();
+    private LinkExtractor linkExtractor;
+
+    private AutolinkPostProcessor(final LinkExtractor linkExtractor) {
+        this.linkExtractor = linkExtractor;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 
     @Override
     public Node process(Node node) {
@@ -73,6 +78,24 @@ public class AutolinkPostProcessor implements PostProcessor {
             if (inLink == 0) {
                 linkify(text);
             }
+        }
+    }
+
+    public static class Builder {
+
+        private LinkExtractor.Builder linkExtractorBuilder = LinkExtractor.builder();
+
+        private Builder() {
+        }
+
+        public Builder withScanner(char trigger, Scanner scanner) {
+            linkExtractorBuilder.withScanner(trigger, scanner);
+
+            return this;
+        }
+
+        public AutolinkPostProcessor build() {
+            return new AutolinkPostProcessor(linkExtractorBuilder.build());
         }
     }
 }

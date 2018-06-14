@@ -501,7 +501,7 @@ public class InlineParserImpl implements InlineParser, ReferenceParser {
         index++;
         int startIndex = index;
 
-        // Get previous `[` or `![`
+        // Get previous `[` or `!
         Bracket opener = lastBracket;
         if (opener == null) {
             // No matching opener, just return a literal.

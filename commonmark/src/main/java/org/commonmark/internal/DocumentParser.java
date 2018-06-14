@@ -166,7 +166,9 @@ public class DocumentParser implements ParserState {
 
     @Override
     public BlockParser getActiveBlockParser() {
-        return activeBlockParsers.get(activeBlockParsers.size() - 1);
+        return activeBlockParsers.isEmpty()
+                ? null
+                : activeBlockParsers.get(activeBlockParsers.size() - 1);
     }
 
     /**
@@ -452,11 +454,15 @@ public class DocumentParser implements ParserState {
      * its parent, and so on til we find a block that can accept children.
      */
     private <T extends BlockParser> T addChild(T blockParser) {
-        while (!getActiveBlockParser().canContain(blockParser.getBlock())) {
+        BlockParser activeBlockParser = getActiveBlockParser();
+        while (activeBlockParser != null && !activeBlockParser.canContain(blockParser.getBlock())) {
             finalize(getActiveBlockParser());
+            activeBlockParser = getActiveBlockParser();
         }
 
-        getActiveBlockParser().getBlock().appendChild(blockParser.getBlock());
+        if (getActiveBlockParser() != null) {
+            getActiveBlockParser().getBlock().appendChild(blockParser.getBlock());
+        }
         activateBlockParser(blockParser);
 
         return blockParser;
